@@ -37,7 +37,7 @@ func _forward {
     } (pos)->(pos_, reward_):
 
     let pos_ = pos - 1
-    let reward_ = 4
+    let reward_ = 5
 
     return(pos_, reward_)
 end

@@ -10,6 +10,7 @@ async def test_recurse():
     contract = await starknet.deploy ('recurse.cairo')
     print(f'recurse.cairo deployed.')
 
-    ret = await contract.run_simulation(start_pos = 5).call()
+    start_pos = 123
+    ret = await contract.run_simulation(start_pos = start_pos).call()
     print(f'run_simulation() returned: {ret.result.total_reward}')
-    #assert ret.result.total_reward == 5*3
+    assert ret.result.total_reward == 5*start_pos
