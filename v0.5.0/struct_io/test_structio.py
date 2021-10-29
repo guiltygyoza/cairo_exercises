@@ -9,6 +9,9 @@ async def test_recurse():
 
     contract = await starknet.deploy ('structio.cairo')
     print(f'> structio.cairo deployed.')
+    print(contract.Dynamics)
+    print(contract.DuoDynamics)
+    print(contract.ToyStruct) ## <======= this line does not work as expected!
 
     # Begin struct IO test
     dyn = contract.Dynamics(x=0, y=0, px=1, py=1)

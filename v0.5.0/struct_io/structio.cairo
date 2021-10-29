@@ -15,6 +15,11 @@ struct DuoDynamics:
     member dyn2 : Dynamics
 end
 
+struct ToyStruct:
+    member x : felt
+    member y : felt
+end
+
 @storage_var
 func StoredDynamics () -> (dynamics : Dynamics):
 end
