@@ -14,3 +14,9 @@ async def test_recurse():
     ret = await contract.run_simulation(start_pos = start_pos).call()
     print(f'run_simulation() returned: {ret.result.total_reward}')
     assert ret.result.total_reward == 5*start_pos
+
+    start_pos = 777
+    ret = await contract.run_simulation_countsteps(start_pos = start_pos).call()
+    print(f'run_simulation_countsteps() returned: steps_took={ret.result.steps_took}, total_reward={ret.result.total_reward}')
+    assert ret.result.total_reward == 5*start_pos
+    assert ret.result.steps_took == start_pos
