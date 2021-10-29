@@ -64,3 +64,10 @@ func retrieve_duo_dynamics {
     return (duo)
 end
 
+@view
+func retrieve_debug_toystruct {
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    } () -> (toy : ToyStruct):
+    let toy = ToyStruct(x=555,y=666)
+    return (toy)
+end
