@@ -4,7 +4,7 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import (unsigned_div_rem, split_felt)
 
-# Seed (for pseudorandom) that players add to.
+# Seed for pseudorandom
 @storage_var
 func entropy_seed(
     ) -> (

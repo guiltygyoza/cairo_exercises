@@ -37,3 +37,6 @@ async def test_recurse():
     print(f'> retrieved duo dynamics: {ret.result.duoDynamics}')
 
     assert duo == ret.result.duoDynamics
+
+    print(f'duo.dyn1 = {duo.dyn1}')
+    print(f'duo.dyn2 = {duo.dyn2}')
