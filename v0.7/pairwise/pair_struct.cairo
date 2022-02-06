@@ -5,8 +5,9 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import (unsigned_div_rem, assert_nn_le)
 from starkware.cairo.common.math_cmp import (is_not_zero, is_le)
 from starkware.cairo.common.default_dict import (default_dict_new, default_dict_finalize)
-from starkware.cairo.common.dict import (dict_write, dict_read, dict_update)
+from starkware.cairo.common.dict import (dict_write, dict_read)
 from starkware.cairo.common.dict_access import DictAccess
+from starkware.cairo.common.memcpy import memcpy
 
 struct Vec2:
     member x : felt
@@ -19,20 +20,29 @@ func pairwise_average {syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         in_arr : Vec2*
     ) -> (
         out_arr_len : felt,
-        out_arr : Vec2*
+        out_arr : Vec2*,
+        ref_arr_len : felt,
+        ref_arr : Vec2*,
+        idx_flatten_final : felt
     ):
     alloc_locals
 
     #
-    # create dict_int and dict_in with in_arr
+    # create dict_init and populate with in_arr
     #
-    let (dict_init) = default_dict_new (default_value = 0)
+    let (dict_init : DictAccess*) = default_dict_new (default_value = 0)
     let (dict_in) = _recurse_populate_dict_with_vec2_array (dict_init, in_arr_len, in_arr, 0)
+
+    #
+    # create an identical copy of dict_in
+    #
+    let (dict_init_copy : DictAccess*) = default_dict_new (default_value = 0)
+    let (dict_in_copy) = _recurse_populate_dict_with_vec2_array (dict_init_copy, in_arr_len, in_arr, 0)
 
     #
     # double recursion to perform pairwise operation on dictionary
     #
-    let (dict_out) = _recurse_outer_loop (dict_in, in_arr_len, 0)
+    let (dict_out, idx_flatten_final) = _recurse_outer_loop (dict_in, in_arr_len, 0, 0)
 
     #
     # populate output array with dict_out
@@ -42,10 +52,17 @@ func pairwise_average {syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     _recurse_populate_vec2_array_with_dict (dict_out, out_arr_len, out_arr, 0)
 
     #
-    # finalize dictionary
+    # populate ref array with dict_in_copy
+    #
+    let (ref_arr : Vec2*) = alloc()
+    let ref_arr_len = in_arr_len
+    _recurse_populate_vec2_array_with_dict (dict_in_copy, ref_arr_len, ref_arr, 0)
+
+    #
+    # finalize dictionary TODO
     #
 
-    return (out_arr_len, out_arr)
+    return (out_arr_len, out_arr, ref_arr_len, ref_arr, idx_flatten_final)
 end
 
 func _recurse_populate_vec2_array_with_dict  {
@@ -96,13 +113,15 @@ func _recurse_inner_loop{
         dict : DictAccess*,
         first : felt,
         last : felt,
-        idx : felt
+        idx : felt,
+        idx_flatten : felt
     ) -> (
-        dict_ : DictAccess*
+        dict_ : DictAccess*,
+        idx_flatten_inner : felt
     ):
 
     if idx == last:
-        return (dict)
+        return (dict, idx_flatten)
     end
 
     let (vec_a_ptr) = dict_read {dict_ptr=dict} (key = first)
@@ -120,8 +139,8 @@ func _recurse_inner_loop{
     dict_write {dict_ptr=dict} (key = first, new_value = vec_avg_ptr_felt)
     dict_write {dict_ptr=dict} (key = idx, new_value = vec_avg_ptr_felt)
 
-    let (dict_) = _recurse_inner_loop (dict, first, last, idx+1)
-    return (dict_)
+    let (dict_, idx_flatten_inner) = _recurse_inner_loop (dict, first, last, idx+1, idx_flatten+1)
+    return (dict_, idx_flatten_inner)
 end
 
 func _recurse_outer_loop{
@@ -129,18 +148,20 @@ func _recurse_outer_loop{
     } (
         dict : DictAccess*,
         last : felt,
-        idx : felt
+        idx : felt,
+        idx_flatten : felt
     ) -> (
-        dict_outer : DictAccess*
+        dict_outer : DictAccess*,
+        idx_flatten_outer : felt
     ):
 
-    if idx == last:
-        return (dict)
+    if idx == last-1:
+        return (dict, idx_flatten)
     end
 
-    let (dict_inner) = _recurse_inner_loop (dict, idx, last, idx+1)
+    let (dict_inner, idx_flatten_inner) = _recurse_inner_loop (dict, idx, last, idx+1, idx_flatten)
 
-    let (dict_outer) = _recurse_outer_loop (dict_inner, last, idx+1)
-    return (dict_outer)
+    let (dict_outer, idx_flatten_outer) = _recurse_outer_loop (dict_inner, last, idx+1, idx_flatten_inner)
+    return (dict_outer, idx_flatten_outer)
 end
 
