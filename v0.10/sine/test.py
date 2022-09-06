@@ -3,6 +3,8 @@ import os
 from starkware.starknet.testing.starknet import Starknet
 import asyncio
 
+SCALE_FP = 10**20 # from contract
+
 @pytest.mark.asyncio
 async def test ():
 
@@ -33,3 +35,12 @@ async def test ():
     ret = await contract.sine_7th(theta = 0).call()
     print(f'> sine_7th(theta = 0) returns: {ret.result.value}') # add '>' before our print messages to indicate they are our messages
     assert ret.result.value == 0
+
+    # Test mul_fp chaining, enabled by "function as expression" in cairo >= 0.10
+    a_fp = 2 * SCALE_FP
+    b_fp = 3 * SCALE_FP
+    c_fp = 5 * SCALE_FP
+    d_fp = 7 * SCALE_FP
+    ret = await contract.chaining_mul_fp_for_fun(a_fp, b_fp, c_fp, d_fp).call()
+    assert ret.result.z_fp == (2*3*5*7) * SCALE_FP
+    print('> mul_fp chaining is successful. huuuge life improvement.')

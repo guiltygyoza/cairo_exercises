@@ -38,34 +38,34 @@ func memory_write {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 //
 // Utility functions for fixed-point arithmetic
 //
-func sqrt_fp{range_check_ptr}(x: felt) -> (y: felt) {
-    let x_ = sqrt(x);
+func sqrt_fp{range_check_ptr}(x: felt) -> felt {
+    let x_ = sqrt(x); // notice: sqrt() now returns a single felt, not a tuple anymore (tuple is returned for cairo < 0.10)
     let y = x_ * SCALE_FP_SQRT;  // compensate for the square root
-    return (y,);
+    return y;
 }
 
-func mul_fp{range_check_ptr}(a: felt, b: felt) -> (c: felt) {
+func mul_fp{range_check_ptr}(a: felt, b: felt) -> felt {
     // signed_div_rem by SCALE_FP after multiplication
     tempvar product = a * b;
     let (c, _) = signed_div_rem(product, SCALE_FP, RANGE_CHECK_BOUND);
-    return (c,);
+    return c;
 }
 
-func div_fp{range_check_ptr}(a: felt, b: felt) -> (c: felt) {
+func div_fp{range_check_ptr}(a: felt, b: felt) -> felt {
     // multiply by SCALE_FP before signed_div_rem
     tempvar a_scaled = a * SCALE_FP;
     let (c, _) = signed_div_rem(a_scaled, b, RANGE_CHECK_BOUND);
-    return (c,);
+    return c;
 }
 
-func mul_fp_ul{range_check_ptr}(a: felt, b_ul: felt) -> (c: felt) {
+func mul_fp_ul{range_check_ptr}(a: felt, b_ul: felt) -> felt {
     let c = a * b_ul;
-    return (c,);
+    return c;
 }
 
-func div_fp_ul{range_check_ptr}(a: felt, b_ul: felt) -> (c: felt) {
+func div_fp_ul{range_check_ptr}(a: felt, b_ul: felt) -> felt {
     let (c, _) = signed_div_rem(a, b_ul, RANGE_CHECK_BOUND);
-    return (c,);
+    return c;
 }
 
 @view
@@ -84,14 +84,14 @@ func sine_7th{range_check_ptr}(theta: felt) -> (value: felt) {
         assert theta_norm = theta;
     }
 
-    let (local theta_2) = mul_fp(theta_norm, theta_norm);
-    let (local theta_3) = mul_fp(theta_2, theta_norm);
-    let (local theta_5) = mul_fp(theta_2, theta_3);
-    let (local theta_7) = mul_fp(theta_2, theta_5);
+    let theta_2 = mul_fp(theta_norm, theta_norm);
+    let theta_3 = mul_fp(theta_2, theta_norm);
+    let theta_5 = mul_fp(theta_2, theta_3);
+    let theta_7 = mul_fp(theta_2, theta_5);
 
-    let (theta_3_div6) = div_fp_ul(theta_3, 6);
-    let (theta_5_div120) = div_fp_ul(theta_5, 120);
-    let (theta_7_div5040) = div_fp_ul(theta_7, 5040);
+    let theta_3_div6 = div_fp_ul(theta_3, 6);
+    let theta_5_div120 = div_fp_ul(theta_5, 120);
+    let theta_7_div5040 = div_fp_ul(theta_7, 5040);
 
     let value = theta_norm - theta_3_div6 + theta_5_div120 - theta_7_div5040;
 
@@ -100,4 +100,21 @@ func sine_7th{range_check_ptr}(theta: felt) -> (value: felt) {
     } else {
         return (value,);
     }
+}
+
+
+@view
+func chaining_mul_fp_for_fun {range_check_ptr} (
+    a_fp : felt, b_fp : felt, c_fp : felt, d_fp : felt) -> (z_fp : felt) {
+
+    let z_fp = mul_fp (
+        d_fp, mul_fp (
+            c_fp, mul_fp (
+                b_fp,
+                a_fp
+            )
+        )
+    );
+
+    return (z_fp = z_fp);
 }
