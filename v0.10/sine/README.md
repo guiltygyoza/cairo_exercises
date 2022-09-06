@@ -1,6 +1,6 @@
 ### Setting up Cairo 0.10
 1. Make sure you have Anaconda installed.
-2. Spin up a environment with Python 3.9 e.g. `conda create --name py39 python=3.9`
+2. Spin up an environment with Python 3.9 e.g. `conda create --name py39 python=3.9`
 3. Hop into the environment e.g. `conda activate py39`
 4. Install Cairo 0.10.0 by following the official instructions at https://www.cairo-lang.org/docs/quickstart.html
 
