@@ -1,0 +1,20 @@
+[
+    {
+        "inputs": [],
+        "name": "read_notebook",
+        "outputs": [
+            {
+                "name": "content",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "record_my_ego_to_notebook",
+        "outputs": [],
+        "type": "function"
+    }
+]
